@@ -14,6 +14,9 @@ function buildPoolConfig(url: string) {
     database: parsed.pathname.replace(/^\//, ''),
     connectionLimit: 10,
     connectTimeout: 10_000,
+    // MySQL 8 defaults to caching_sha2_password; the mariadb driver needs
+    // this flag to fetch the server's RSA public key over plain TCP (no TLS).
+    allowPublicKeyRetrieval: true,
   }
 }
 
