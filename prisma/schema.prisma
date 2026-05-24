@@ -1,0 +1,56 @@
+datasource db {
+  provider = "mysql"
+}
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+model Cliente {
+  id        BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  nombre    String   @db.VarChar(255)
+  dpi       String   @unique @db.VarChar(20)
+  email     String?  @db.VarChar(255)
+  telefono  String?  @db.VarChar(20)
+  createdAt DateTime @default(now()) @map("created_at") @db.DateTime(3)
+  cobros    Cobro[]
+
+  @@map("clientes")
+}
+
+enum EstadoCobro {
+  PENDIENTE
+  PROCESADO
+  FALLIDO
+}
+
+model Cobro {
+  id                BigInt      @id @default(autoincrement()) @db.UnsignedBigInt
+  clienteId         BigInt      @map("cliente_id") @db.UnsignedBigInt
+  monto             Decimal     @db.Decimal(14, 2)
+  moneda            String      @default("GTQ") @db.VarChar(3)
+  estado            EstadoCobro @default(PENDIENTE)
+  fechaCreacion     DateTime    @default(now()) @map("fecha_creacion") @db.DateTime(3)
+  fechaProceso      DateTime?   @map("fecha_proceso") @db.DateTime(3)
+  referenciaExterna String?     @map("referencia_externa") @db.VarChar(100)
+  cliente           Cliente     @relation(fields: [clienteId], references: [id])
+
+  @@index([clienteId])
+  @@index([estado])
+  @@index([fechaCreacion])
+  @@index([clienteId, estado, fechaCreacion])
+  @@map("cobros")
+}
+
+model Auditoria {
+  id             BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  evento         String   @db.VarChar(100)
+  resumenPayload Json?    @map("resumen_payload")
+  fecha          DateTime @default(now()) @db.DateTime(3)
+  usuarioSistema String   @default("sistema") @map("usuario_sistema") @db.VarChar(100)
+
+  @@index([evento])
+  @@index([fecha])
+  @@map("auditoria")
+}
